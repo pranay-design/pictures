@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chaotic Stopwatch</title>
+    
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="Chaotic Stopwatch">
+    <meta name="description" content="Not your regular stopwatch">
+
+    <!-- Open Graph / Facebook / iMessage -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://pranay.pictures/vibes/chaotic-stopwatch">
+    <meta property="og:title" content="Chaotic Stopwatch">
+    <meta property="og:description" content="Not your regular stopwatch">
+    <!-- MUST BE AN ABSOLUTE URL TO A PNG/JPG -->
+    <meta property="og:image" content="https://pranay.pictures/vibes/chaotic-stopwatch/chaotic-stopwatch-og.png">
+
+    <!-- Twitter / X -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://pranay.pictures/vibes/chaotic-stopwatch">
+    <meta property="twitter:title" content="Chaotic Stopwatch">
+    <meta property="twitter:description" content="Not your regular stopwatch">
+    <!-- MUST BE AN ABSOLUTE URL TO A PNG/JPG -->
+    <meta property="twitter:image" content="https://pranay.pictures/vibes/chaotic-stopwatch/chaotic-stopwatch-og.png">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='36' cy='36' r='24' fill='%23000'/%3E%3Ccircle cx='32' cy='32' r='24' fill='%23D4FE45' stroke='%23000' stroke-width='4'/%3E%3Crect x='28' y='6' width='12' height='8' fill='%23000'/%3E%3Crect x='26' y='4' width='12' height='8' fill='%2300FFFF' stroke='%23000' stroke-width='4'/%3E%3Cline x1='32' y1='32' x2='44' y2='20' stroke='%23000' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='32' r='4' fill='%23FF90E8' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Space Grotesk', 'sans-serif'],
+                        mono: ['Space Grotesk', 'monospace'],
+                    },
+                    colors: {
+                        lavender: '#E6E6FA',
+                        neocy: '#00FFFF',
+                        neoyel: '#D4FE45',
+                        neopink: '#FF90E8',
+                    },
+                    boxShadow: {
+                        'neu': '8px 8px 0px 0px rgba(0,0,0,1)',
+                        'neu-sm': '4px 4px 0px 0px rgba(0,0,0,1)',
+                        'neu-active': '2px 2px 0px 0px rgba(0,0,0,1)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #E6E6FA; /* Digital Lavender */
+            margin: 0;
+            overflow: hidden;
+            touch-action: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        /* Neubrutalism Base */
+        .neu-box {
+            border: 4px solid #000;
+            box-shadow: 8px 8px 0px 0px #000;
+        }
+
+        .neu-btn {
+            border: 4px solid #000;
+            box-shadow: 4px 4px 0px 0px #000;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.1s;
+            touch-action: manipulation;
+            -webkit-touch-callout: none; /* Disables the iOS popup menu */
+            -webkit-user-select: none;   /* Safari */
+            user-select: none;           /* Standard syntax */
+        }
+
+        .neu-btn:active {
+            transform: translate(2px, 2px) !important;
+            box-shadow: 2px 2px 0px 0px #000 !important;
+        }
+
+        /* Start Button "Whoosh" */
+        .whoosh-transition {
+            transition: left 0.4s cubic-bezier(0.25, 1, 0.5, 1), top 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.1s ease-out;
+        }
+
+        /* Walking Buttons */
+        .walking-btn {
+            position: absolute !important;
+            z-index: 50;
+            transition: background-color 0.1s, color 0.1s; 
+        }
+        
+        .walking-btn::before, .walking-btn::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            width: 8px;
+            height: 18px;
+            background-color: #000;
+            border-radius: 4px;
+            transform-origin: top center;
+            z-index: -1;
+        }
+        
+        .walking-btn::before {
+            left: 25%;
+            animation: walk-leg 0.3s infinite alternate ease-in-out;
+        }
+        
+        .walking-btn::after {
+            right: 25%;
+            animation: walk-leg 0.3s infinite alternate-reverse ease-in-out;
+        }
+        
+        @keyframes walk-leg {
+            0% { transform: rotate(-35deg); }
+            100% { transform: rotate(35deg); }
+        }
+
+        /* Nervous Shiver for Panic Mode */
+        @keyframes panic-shiver {
+            0%, 15%, 50%, 65%, 100% { transform: translate(0px, 0px); }
+            /* Burst 1: Sharp shiver */
+            2%, 6%, 10%, 14% { transform: translate(-1.5px, 1.5px); }
+            4%, 8%, 12% { transform: translate(1.5px, -1.5px); }
+            /* Burst 2: Smaller nervous twitch */
+            52%, 56%, 60%, 64% { transform: translate(-1px, 1px); }
+            54%, 58%, 62% { transform: translate(1px, -1px); }
+        }
+        .panic-shiver {
+            animation: panic-shiver 3s infinite;
+        }
+
+        /* Callout Jiggle */
+        @keyframes callout-jiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-3deg); }
+            75% { transform: rotate(3deg); }
+        }
+        .callout-jiggle {
+            animation: callout-jiggle 0.15s infinite ease-in-out;
+        }
+
+        /* Dino Animations */
+        @keyframes stomp {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        .stomp-anim {
+            animation: stomp 0.25s infinite ease-in-out;
+        }
+
+        @keyframes bite {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(15deg); }
+        }
+        .biting {
+            animation: bite 0.15s infinite ease-in-out;
+        }
+
+        /* Flame & Fire Animations */
+        @keyframes fire-flicker {
+            0% { filter: drop-shadow(0 0 5px #ff3300) brightness(1); }
+            100% { filter: drop-shadow(0 0 15px #ffcc00) brightness(1.2); }
+        }
+        .flame-anim {
+            animation: fire-flicker 0.1s infinite alternate;
+        }
+
+        .card-on-fire {
+            border-color: #ff3300 !important;
+            box-shadow: 0 0 30px #ff3300, inset 0 0 20px #ff3300, 8px 8px 0px 0px #000 !important;
+            transition: all 0.2s ease-in-out;
+        }
+
+        /* Shattered Arena Styles */
+        .arena-shattered {
+            background-color: transparent !important;
+            border-color: transparent !important;
+            box-shadow: none !important;
+        }
+
+        /* Dynamic Timer Scaling */
+        .timer-size {
+            font-size: 18vw;
+            transition: font-size 0.2s ease-out, color 0.2s ease-out;
+        }
+        @media (min-width: 768px) {
+            .timer-size { font-size: 9rem; }
+        }
+        .timer-size.is-negative {
+            font-size: 14vw; /* Shrinks to accommodate the minus sign */
+        }
+        @media (min-width: 768px) {
+            .timer-size.is-negative { font-size: 7.5rem; }
+        }
+
+        /* Hide scrollbar */
+        ::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body id="screen-bounds" class="text-black font-sans antialiased w-full h-[100dvh]">
+
+    <!-- ================= VIEW 1: RELUCTANT START ================= -->
+    <div id="view-start" class="absolute inset-0 z-30 flex flex-col items-center justify-center overflow-hidden transition-opacity duration-[400ms]">
+        
+        <div id="start-btn-wrapper" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 whoosh-transition origin-center flex flex-col items-center z-50">
+            <!-- Callout bubble -->
+            <div id="reluctance-text" class="relative bg-white text-black font-black text-sm md:text-xl px-4 md:px-6 py-2 md:py-3 rounded-2xl mb-4 md:mb-6 opacity-0 transition-opacity duration-300 shadow-neu-sm border-4 border-black whitespace-nowrap">
+                <span id="reluctance-span">Don't make me work.</span>
+                <!-- Speech bubble tail -->
+                <div class="absolute -bottom-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-black"></div>
+                <div class="absolute -bottom-[6px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-white"></div>
+            </div>
+            
+            <!-- Massive Start Button -->
+            <button id="btn-massive-start" class="neu-btn bg-neoyel text-black font-black text-4xl md:text-6xl px-10 md:px-16 py-6 md:py-8 rounded-xl">
+                START
+            </button>
+        </div>
+    </div>
+
+    <!-- Dino for Chaos Mode -->
+    <div id="dino" class="hidden absolute z-50 pointer-events-none select-none origin-center" style="filter: drop-shadow(6px 6px 0px rgba(0,0,0,0.4));">
+        <div id="dino-inner" class="stomp-anim origin-bottom w-full h-full relative">
+            <svg viewBox="0 0 174 117" fill="none" xmlns="http://www.w3.org/2000/svg" id="dino-svg" class="w-full h-full relative z-20">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M130.314 5.42953H135.744V29.8624H108.596V35.292H124.885V40.7215H103.166V51.5806H114.026V62.4397H108.596V57.0101H103.166V76.0135H97.7369V84.1578H92.3074V89.5873H86.8779V111.305H92.3074V116.735H81.4483V100.446H76.0188V95.0169H70.5893V100.446H65.1597V105.876H59.7302V111.305H65.1597V116.735H54.3007V95.0169H48.8711V89.5873H43.4416V84.1578H38.0121V78.7283H32.5825V73.2987H27.153V40.7215H32.5825V51.5806H38.0121V57.0101H43.4416V62.4397H54.3007V57.0101H59.7302V51.5806H67.8745V46.151H76.0188V40.7215H81.4483V5.42953H86.8779V0H130.314V5.42953ZM92.3074 13.5738H97.7369V8.1443H92.3074V13.5738Z" fill="#0A1224"/>
+                <!-- Angry Red Eye (Hidden by default) -->
+                <rect id="dino-eye" x="131" y="12" width="6" height="6" fill="#FF3300" class="hidden animate-pulse" />
+                <!-- Angry Eyebrow (Hidden by default) -->
+                <path id="dino-brow" d="M125 8 L142 16 L142 12 L125 4 Z" fill="#FF3300" class="hidden" />
+            </svg>
+            
+            <!-- Fire Blast (Shorter, more compact, fully visible) -->
+            <div id="dino-fire" class="hidden absolute top-[10%] left-[80%] w-[150px] md:w-[250px] h-[60px] md:h-[100px] origin-left z-10 transition-transform duration-[200ms] ease-out">
+                <svg viewBox="0 0 200 100" preserveAspectRatio="none" class="w-full h-full flame-anim" style="filter: drop-shadow(4px 4px 0px #000)">
+                    <path d="M0 50 L60 10 L50 35 L120 0 L100 45 L190 20 L140 55 L200 70 L130 75 L160 100 L90 85 L60 100 L40 70 L0 50Z" fill="#FF3300" stroke="#000" stroke-width="4" stroke-linejoin="round"/>
+                    <path d="M0 50 L50 25 L40 40 L100 15 L85 48 L160 30 L120 58 L180 70 L115 72 L140 90 L80 78 L55 90 L40 65 L0 50Z" fill="#FFCC00" stroke="#000" stroke-width="3" stroke-linejoin="round"/>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= VIEW 2: STOPWATCH APP ================= -->
+    <div id="view-app" class="absolute inset-0 z-20 hidden p-4 md:p-10 flex flex-col items-center justify-center">
+        
+        <!-- Cards Wrapper (Moves together during jiggle/avoidance) -->
+        <div id="cards-wrapper" class="w-full max-w-[800px] flex flex-col gap-6 transition-transform duration-300 ease-out">
+            
+            <!-- Center Bento Card (Stopwatch) -->
+            <div id="main-bento" class="neu-box bg-white w-full h-auto min-h-[40vh] md:min-h-[500px] rounded-3xl flex flex-col relative overflow-hidden transition-colors duration-300">
+                <div id="bento-inner" class="w-full h-full p-6 md:p-8 flex flex-col relative z-10">
+                    
+                    <!-- Header & Vibe Switch -->
+                    <div class="flex flex-col items-center justify-center gap-4 mb-6 md:mb-10 w-full">
+                        <div class="flex items-center justify-center space-x-3 w-full">
+                            <div class="w-3 h-3 md:w-4 md:h-4 bg-red-500 rounded-full border-2 border-black animate-pulse" id="record-indicator"></div>
+                            <h2 class="text-3xl md:text-4xl font-black uppercase tracking-widest text-center">Stopwatch</h2>
+                        </div>
+                        
+                        <button id="btn-vibe" class="neu-btn bg-neocy px-6 py-2 md:px-8 md:py-3 font-bold text-lg md:text-xl uppercase rounded-lg flex items-center justify-center gap-2 whitespace-nowrap transition-all w-max mx-auto">
+                            <span class="whitespace-nowrap">MODE: CHILL</span>
+                            <i data-lucide="refresh-cw" class="w-5 h-5 shrink-0"></i>
+                        </button>
+                    </div>
+
+                    <!-- The Timer Display -->
+                    <div class="flex-1 flex flex-col items-center justify-center relative w-full overflow-hidden py-4 md:py-8">
+                        <div class="font-mono font-black leading-none tracking-tighter flex items-end justify-center select-none w-full timer-size" id="timer-display">
+                            <span id="t-hh">00</span>:
+                            <span id="t-mm">00</span>:
+                            <span id="t-ss">00</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bento Fire Edges (Hidden by default) -->
+                <div id="bento-flames" class="hidden absolute bottom-0 left-0 w-full h-[50px] md:h-[80px] z-20 pointer-events-none overflow-hidden rounded-b-[1.25rem]">
+                    <svg viewBox="0 0 400 100" preserveAspectRatio="none" class="w-full h-full flame-anim origin-bottom" style="transform: scaleY(1.2)">
+                        <path d="M0 100 L20 40 L40 80 L60 20 L80 70 L100 10 L120 60 L140 0 L160 50 L180 15 L200 65 L220 5 L240 70 L260 25 L280 80 L300 15 L320 60 L340 10 L360 70 L380 30 L400 100 Z" fill="#FF3300" opacity="0.8"/>
+                        <path d="M0 100 L25 60 L50 90 L75 40 L100 80 L125 30 L150 70 L175 20 L200 80 L225 35 L250 85 L275 40 L300 75 L325 30 L350 85 L375 50 L400 100 Z" fill="#FFCC00" opacity="0.8"/>
+                    </svg>
+                </div>
+
+                <!-- Inner Bento Grid Lines -->
+                <div class="absolute inset-0 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:24px_24px] opacity-5 pointer-events-none z-0"></div>
+            </div>
+
+            <!-- Controls Area -->
+            <div id="controls-arena" class="neu-box bg-gray-100 w-full h-28 md:h-32 rounded-3xl p-4 relative flex items-center justify-center gap-4 md:gap-8 box-border transition-all duration-200">
+                <button id="btn-pause" class="neu-btn bg-white px-6 py-3 md:px-10 md:py-4 text-xl md:text-2xl font-black uppercase rounded-lg flex items-center gap-2 z-10">
+                    <i data-lucide="pause" class="w-5 h-5 md:w-6 md:h-6"></i>
+                    <span class="btn-text">Pause</span>
+                </button>
+                
+                <button id="btn-stop" class="neu-btn bg-black text-white px-6 py-3 md:px-10 md:py-4 text-xl md:text-2xl font-black uppercase rounded-lg flex items-center gap-2 z-10">
+                    <i data-lucide="square" class="w-5 h-5 md:w-6 md:h-6 fill-current"></i>
+                    <span class="btn-text">Stop</span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // --- Core Environment & Haptics ---
+        const isTouchDevice = window.matchMedia("(pointer: coarse)").matches || ('ontouchstart' in window);
+        
+        const vibrate = (pattern) => {
+            if (navigator.vibrate) {
+                try { navigator.vibrate(pattern); } catch (e) {}
+            }
+        };
+
+        // --- 8-Bit Boss Music Synth (Web Audio API) ---
+        let audioCtx;
+        let masterGain;
+        let musicInterval;
+        let noteIndex = 0;
+
+        // Panic Mode: Mildly nervous, slower minor progression
+        const panicMelodyHz = [587.33, 698.46, 830.61, 698.46]; // D5, F5, G#5, F5
+        const panicBassHz = [146.83, 146.83, 103.83, 103.83];   // D3, G#2
+
+        // Chaos Mode: Frenetic, extended dissonant Boss Battle loops
+        const chaosMelodyHz = [
+            587.33, 698.46, 830.61, 698.46, 
+            587.33, 523.25, 493.88, 523.25,
+            932.33, 830.61, 987.77, 830.61 // High dissonant escalation
+        ];
+        const chaosBassHz = [
+            146.83, 146.83, 146.83, 146.83, 
+            103.83, 103.83, 103.83, 103.83,
+            116.54, 116.54, 110.00, 110.00 // Bb2, A2
+        ];
+
+        function initAudio() {
+            if (audioCtx) return;
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+            masterGain = audioCtx.createGain();
+            masterGain.gain.value = 0.05; // Keep it retro & not deafening
+            masterGain.connect(audioCtx.destination);
+        }
+
+        function playNote(freq, type, duration, time) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, time);
+
+            gain.gain.setValueAtTime(1, time);
+            gain.gain.exponentialRampToValueAtTime(0.01, time + duration);
+
+            osc.connect(gain);
+            gain.connect(masterGain);
+
+            osc.start(time);
+            osc.stop(time + duration);
+        }
+
+        function playBossMusic(mode) {
+            if (!audioCtx) initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const lookahead = 25.0; // ms
+            const scheduleAheadTime = 0.1; // s
+            let nextNoteTime = audioCtx.currentTime + 0.05;
+
+            const isChaos = mode === 'CHAOS';
+            const melody = isChaos ? chaosMelodyHz : panicMelodyHz;
+            const bass = isChaos ? chaosBassHz : panicBassHz;
+            
+            // Panic = slower (0.2s per note), Chaos = frantic (0.1s per note)
+            const noteStep = isChaos ? 0.1 : 0.2; 
+
+            clearInterval(musicInterval);
+            musicInterval = setInterval(() => {
+                while (nextNoteTime < audioCtx.currentTime + scheduleAheadTime) {
+                    playNote(melody[noteIndex % melody.length], 'square', noteStep * 0.8, nextNoteTime);
+                    playNote(bass[noteIndex % bass.length], 'sawtooth', noteStep, nextNoteTime);
+
+                    nextNoteTime += noteStep;
+                    noteIndex++;
+                }
+            }, lookahead);
+        }
+
+        function stopBossMusic() {
+            clearInterval(musicInterval);
+        }
+
+        // --- DOM Elements ---
+        const viewStart = document.getElementById('view-start');
+        const viewApp = document.getElementById('view-app');
+        const startBtnWrapper = document.getElementById('start-btn-wrapper');
+        const btnMassiveStart = document.getElementById('btn-massive-start');
+        const reluctanceText = document.getElementById('reluctance-text');
+        const reluctanceSpan = document.getElementById('reluctance-span');
+        const cardsWrapper = document.getElementById('cards-wrapper');
+        const mainBento = document.getElementById('main-bento');
+        const bentoInner = document.getElementById('bento-inner');
+        const screenBounds = document.getElementById('screen-bounds');
+        const controlsArena = document.getElementById('controls-arena');
+        const btnPause = document.getElementById('btn-pause');
+        const btnStop = document.getElementById('btn-stop');
+        const btnVibe = document.getElementById('btn-vibe');
+        const tHh = document.getElementById('t-hh');
+        const tMm = document.getElementById('t-mm');
+        const tSs = document.getElementById('t-ss');
+        const dino = document.getElementById('dino');
+        const dinoInner = document.getElementById('dino-inner');
+
+        // Initial Dino Sizing based on device
+        const DINO_W = isTouchDevice ? 250 : 348;
+        const DINO_H = isTouchDevice ? 168 : 234;
+        dino.style.width = `${DINO_W}px`;
+        dino.style.height = `${DINO_H}px`;
+
+        // --- App State ---
+        let startAttempts = 0;
+        let mobileTaps = 0; 
+        
+        let appState = 'CHILL'; // CHILL, PANIC, CHAOS
+        let isRunning = false;
+        let isPaused = false;
+        
+        let isPreparingFire = false;
+        let isBreathingFire = false;
+        let fireInterval = null;
+        let firePhaseTimeout = null;
+        
+        let timerTime = 0;
+        let lastTimestamp = 0;
+        let rafId = null;
+
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+
+        let gyroShiftX = 0;
+        let gyroShiftY = 0;
+        let autoCardX = 0;
+        let autoCardY = 0;
+        let autoCardVx = 0;
+        let autoCardVy = 0;
+
+        const goombas = [
+            { el: btnPause, x: 0, y: 0, vx: 0, vy: 0, w: 0, h: 0, active: false },
+            { el: btnStop, x: 0, y: 0, vx: 0, vy: 0, w: 0, h: 0, active: false }
+        ];
+        
+        let dinoObj = { x: -500, y: 300, vx: 0, vy: 0, active: false };
+
+        // --- Global Input Monitoring ---
+        
+        document.addEventListener('mousemove', (e) => {
+            if (isTouchDevice) return; 
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            handleReluctantHover();
+        });
+
+        document.addEventListener('touchstart', (e) => {
+            if (!isRunning || !isTouchDevice || (appState !== 'PANIC' && appState !== 'CHAOS')) return;
+            
+            const touch = e.touches[0];
+            const screenRect = screenBounds.getBoundingClientRect();
+            const arenaRect = controlsArena.getBoundingClientRect();
+
+            let touchX, touchY;
+            if (appState === 'PANIC') {
+                touchX = touch.clientX - arenaRect.left;
+                touchY = touch.clientY - arenaRect.top;
+            } else {
+                touchX = touch.clientX - screenRect.left;
+                touchY = touch.clientY - screenRect.top;
+            }
+
+            goombas.forEach(g => {
+                if (!g.active) return;
+                const gCenterX = g.x + g.w / 2;
+                const gCenterY = g.y + g.h / 2;
+                const dist = Math.hypot(touchX - gCenterX, touchY - gCenterY);
+                
+                if (dist < 150) {
+                    const angle = Math.atan2(gCenterY - touchY, gCenterX - touchX);
+                    g.vx = Math.cos(angle) * 20; 
+                    g.vy = Math.sin(angle) * 20;
+                }
+            });
+        }, {passive: true});
+
+        window.addEventListener('deviceorientation', (e) => {
+            if (!isRunning || (appState !== 'PANIC' && appState !== 'CHAOS') || !isTouchDevice) return;
+            
+            let tiltX = e.gamma || 0; 
+            let tiltY = e.beta || 0;  
+            
+            tiltX = Math.max(-45, Math.min(45, tiltX));
+            tiltY = Math.max(-45, Math.min(45, tiltY));
+
+            gyroShiftX = -(tiltX / 45) * 150; 
+            
+            // Constrict vertical movement heavily so card doesn't fly out of thumb reach
+            let shiftY = -(tiltY / 45) * 120;
+            gyroShiftY = Math.max(-30, Math.min(40, shiftY)); 
+        });
+
+        // --- Interaction Handlers ---
+
+        function handleReluctantHover() {
+            if (startAttempts > 0 && !viewStart.classList.contains('hidden')) {
+                const viewRect = viewStart.getBoundingClientRect();
+                const localMouseX = mouseX - viewRect.left;
+                const localMouseY = mouseY - viewRect.top;
+
+                const btnW = startBtnWrapper.offsetWidth;
+                const btnH = startBtnWrapper.offsetHeight;
+                
+                const baseLeft = parseFloat(startBtnWrapper.style.left) || 0;
+                const baseTop = parseFloat(startBtnWrapper.style.top) || 0;
+                
+                const centerX = baseLeft + (btnW / 2);
+                const centerY = baseTop + (btnH / 2);
+                
+                const dist = Math.hypot(localMouseX - centerX, localMouseY - centerY);
+
+                if (dist < 250) {
+                    const scale = Math.max(0.85, (dist / 250)); 
+                    const angle = Math.atan2(centerY - localMouseY, centerX - localMouseX);
+                    const shiftDist = (1 - (dist / 250)) * 20;
+                    const tx = Math.cos(angle) * shiftDist;
+                    const ty = Math.sin(angle) * shiftDist;
+                    
+                    startBtnWrapper.style.transform = `scale(${scale}) translate(${tx}px, ${ty}px)`;
+                    
+                    if (dist < 180) {
+                        reluctanceText.classList.add('callout-jiggle');
+                    } else {
+                        reluctanceText.classList.remove('callout-jiggle');
+                    }
+                } else {
+                    startBtnWrapper.style.transform = `scale(1) translate(0px, 0px)`;
+                    reluctanceText.classList.remove('callout-jiggle');
+                }
+            }
+        }
+
+        // --- View 1: Reluctant Start Logic ---
+        function moveButtonRandomly() {
+            const btnRect = startBtnWrapper.getBoundingClientRect();
+            const viewRect = viewStart.getBoundingClientRect();
+            
+            const pad = isTouchDevice ? 15 : 40; 
+            
+            const corners = [
+                { x: pad, y: pad },
+                { x: viewRect.width - btnRect.width - pad, y: pad },
+                { x: pad, y: viewRect.height - btnRect.height - pad },
+                { x: viewRect.width - btnRect.width - pad, y: viewRect.height - btnRect.height - pad }
+            ];
+            
+            const corner = corners[Math.floor(Math.random() * corners.length)];
+            
+            startBtnWrapper.style.transform = 'none';
+            startBtnWrapper.style.left = `${corner.x}px`;
+            startBtnWrapper.style.top = `${corner.y}px`;
+        }
+
+        let touchInProgress = false;
+        let longPressTimer = null;
+        let isLongPressTriggered = false;
+
+        const triggerPrank = (e) => {
+            if (touchInProgress) return; // Ignore emulated mouseenter from touch
+            if (startAttempts === 0) {
+                moveButtonRandomly();
+                reluctanceText.classList.remove('opacity-0');
+                startAttempts++;
+            }
+        };
+
+        btnMassiveStart.addEventListener('mouseenter', triggerPrank);
+
+        // Long Press Logic for Touch Devices
+        btnMassiveStart.addEventListener('touchstart', (e) => {
+            touchInProgress = true;
+            isLongPressTriggered = false;
+            
+            // Start the timer for long press detection
+            longPressTimer = setTimeout(() => {
+                isLongPressTriggered = true;
+                initAudio(); // Required to unlock Web Audio API early
+                
+                // Cry and yield immediately
+                reluctanceSpan.innerText = "Okay fine! Stop squeezing me! 😭";
+                reluctanceText.classList.remove('opacity-0');
+                reluctanceText.classList.add('callout-jiggle');
+                
+                // Visual squeeze effect
+                btnMassiveStart.style.transition = 'transform 0.1s';
+                btnMassiveStart.style.transform = 'scale(0.9) rotate(-2deg)';
+                
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    DeviceOrientationEvent.requestPermission().catch(console.error);
+                }
+                
+                vibrate([50, 50, 100]); // Success haptic
+                
+                // Wait briefly for user to read the text, then start
+                setTimeout(() => {
+                    viewStart.classList.add('opacity-0');
+                    setTimeout(() => {
+                        viewStart.classList.add('hidden');
+                        viewApp.classList.remove('hidden');
+                        viewApp.style.display = 'flex';
+                        startApp();
+                        btnMassiveStart.style.transform = '';
+                        touchInProgress = false;
+                    }, 300);
+                }, 800);
+            }, 700); // 700ms hold required
+        }, {passive: true});
+
+        // Cancel long press if user lifts finger too early
+        btnMassiveStart.addEventListener('touchend', (e) => {
+            if (longPressTimer) clearTimeout(longPressTimer);
+            
+            if (isLongPressTriggered) {
+                if (e.cancelable) e.preventDefault(); // Stop click
+                return;
+            }
+            
+            setTimeout(() => { touchInProgress = false; }, 500);
+        });
+
+        // Cancel long press if user drags their finger away
+        btnMassiveStart.addEventListener('touchmove', () => {
+            if (longPressTimer) clearTimeout(longPressTimer);
+        });
+
+        btnMassiveStart.addEventListener('touchcancel', () => {
+            if (longPressTimer) clearTimeout(longPressTimer);
+            touchInProgress = false;
+        });
+
+        btnMassiveStart.addEventListener('click', (e) => {
+            if (isLongPressTriggered) return;
+            initAudio(); // Required to unlock Web Audio API
+
+            if (isTouchDevice) {
+                mobileTaps++;
+                startAttempts++; 
+                
+                if (mobileTaps < 4) { 
+                    vibrate([20, 30, 20]); // Haptic mock
+                    const taunts = ["Missed me!", "Too slow!", "Nice try!"];
+                    reluctanceSpan.innerText = taunts[mobileTaps - 1];
+                    reluctanceText.classList.remove('opacity-0');
+                    moveButtonRandomly();
+                    e.preventDefault();
+                    return; 
+                }
+            } else {
+                if (startAttempts === 0) return; 
+            }
+
+            // --- Success Phase ---
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission().catch(console.error);
+            }
+
+            vibrate([50, 50, 100]); // Success haptic
+            reluctanceSpan.innerText = "Nooooo!";
+            reluctanceText.classList.add('callout-jiggle'); 
+            viewStart.classList.add('opacity-0');
+            
+            setTimeout(() => {
+                viewStart.classList.add('hidden');
+                viewApp.classList.remove('hidden');
+                viewApp.style.display = 'flex'; // Using tailwind flex classes overrides
+                startApp();
+            }, 400);
+        });
+
+        // --- Shatter Arena Logic ---
+        function createShards() {
+            const arenaRect = controlsArena.getBoundingClientRect();
+            
+            const centerX = arenaRect.left + (arenaRect.width / 2);
+            const centerY = arenaRect.top + (arenaRect.height / 2);
+
+            for (let i = 0; i < 15; i++) {
+                const shard = document.createElement('div');
+                shard.className = 'shard absolute bg-gray-100 border-4 border-black z-0 pointer-events-none transition-all duration-[600ms] ease-out';
+                shard.style.width = `${Math.random() * 40 + 20}px`;
+                shard.style.height = `${Math.random() * 40 + 20}px`;
+                shard.style.left = `${centerX - 25}px`;
+                shard.style.top = `${centerY - 25}px`;
+
+                const poly = `polygon(0% ${Math.random()*20}%, 100% 0%, ${80+Math.random()*20}% 100%, 0% 100%)`;
+                shard.style.clipPath = poly;
+                document.body.appendChild(shard);
+
+                setTimeout(() => {
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = Math.random() * 300 + 100;
+                    const tx = Math.cos(angle) * dist;
+                    const ty = Math.sin(angle) * dist;
+                    const rot = (Math.random() - 0.5) * 720;
+                    
+                    shard.style.transform = `translate(${tx}px, ${ty}px) rotate(${rot}deg)`;
+                    shard.style.opacity = '0';
+                }, 50);
+
+                setTimeout(() => shard.remove(), 700);
+            }
+        }
+
+        // --- Core Application Logic ---
+
+        function startApp() {
+            appState = 'CHILL';
+            updateUIForState();
+            timerTime = 0;
+            isRunning = true;
+            isPaused = false;
+            lastTimestamp = performance.now();
+            rafId = requestAnimationFrame(engineLoop);
+        }
+
+        function resetApp() {
+            isRunning = false;
+            cancelAnimationFrame(rafId);
+            stopBossMusic();
+            resetFireState();
+            clearInterval(fireInterval);
+            
+            appState = 'CHILL';
+            timerTime = 0;
+            updateTimerDisplay();
+            
+            goombas.forEach(g => {
+                g.active = false;
+                g.el.classList.remove('walking-btn');
+                g.el.style.position = 'static';
+                g.el.style.left = '';
+                g.el.style.top = '';
+                g.el.style.width = '';
+                g.el.style.height = '';
+                g.el.style.transform = '';
+            });
+            
+            dino.classList.add('hidden');
+            dinoInner.classList.remove('biting');
+            dinoObj.active = false;
+
+            gyroShiftX = 0;
+            gyroShiftY = 0;
+            autoCardX = 0;
+            autoCardY = 0;
+
+            controlsArena.classList.remove('arena-shattered');
+            controlsArena.classList.add('neu-box', 'bg-gray-100');
+            document.querySelectorAll('.shard').forEach(s => s.remove());
+            
+            btnPause.innerHTML = `<i data-lucide="pause" class="w-5 h-5 md:w-6 md:h-6"></i><span class="btn-text">Pause</span>`;
+            btnStop.innerHTML = `<i data-lucide="square" class="w-5 h-5 md:w-6 md:h-6 fill-current"></i><span class="btn-text">Stop</span>`;
+            lucide.createIcons();
+
+            cardsWrapper.style.transition = 'transform 0.3s ease-out';
+            cardsWrapper.style.transform = `translate(0px, 0px) rotate(0deg)`;
+            
+            viewApp.classList.add('hidden');
+            viewApp.style.display = '';
+            viewStart.classList.remove('hidden', 'opacity-0');
+            
+            startAttempts = 0;
+            mobileTaps = 0; 
+            reluctanceSpan.innerText = "Don't make me work.";
+            reluctanceText.classList.add('opacity-0');
+            reluctanceText.classList.remove('callout-jiggle');
+            startBtnWrapper.style.transition = 'none';
+            startBtnWrapper.style.transform = 'translate(-50%, -50%)';
+            startBtnWrapper.style.left = '50%';
+            startBtnWrapper.style.top = '50%';
+            
+            void startBtnWrapper.offsetWidth; // Force reflow
+            startBtnWrapper.style.transition = '';
+        }
+
+        function engineLoop(timestamp) {
+            if (!isRunning) return;
+            
+            const delta = timestamp - lastTimestamp;
+            lastTimestamp = timestamp;
+
+            if (!isPaused) {
+                if (appState === 'CHAOS') {
+                    timerTime -= delta; 
+                } else {
+                    timerTime += delta;
+                }
+                updateTimerDisplay();
+            }
+
+            const screenRect = screenBounds.getBoundingClientRect();
+
+            // Card Transformations (Combining Gyro, Auto-move, and Proximity)
+            if (appState === 'PANIC' || appState === 'CHAOS') {
+                let proximityShiftX = 0;
+                let proximityShiftY = 0;
+
+                // Autonomous movement for CHAOS mode
+                if (appState === 'CHAOS') {
+                    autoCardX += autoCardVx;
+                    autoCardY += autoCardVy;
+                    
+                    const maxAutoX = 80; 
+                    const maxAutoY = 80; 
+                    if (autoCardX <= -maxAutoX) { autoCardX = -maxAutoX; autoCardVx *= -1; }
+                    if (autoCardX >= maxAutoX) { autoCardX = maxAutoX; autoCardVx *= -1; }
+                    if (autoCardY <= -maxAutoY) { autoCardY = -maxAutoY; autoCardVy *= -1; }
+                    if (autoCardY >= maxAutoY) { autoCardY = maxAutoY; autoCardVy *= -1; }
+                } else {
+                    autoCardX = 0;
+                    autoCardY = 0;
+                }
+
+                // Proximity Shifting for Desktop
+                if (!isTouchDevice && appState === 'CHAOS') {
+                    const cx = screenRect.left + screenRect.width / 2;
+                    const cy = screenRect.top + screenRect.height / 2;
+                    const dx = mouseX - cx;
+                    const dy = mouseY - cy;
+                    const dist = Math.hypot(dx, dy);
+                    
+                    if (dist < 400) {
+                        const intensity = Math.pow(1 - (dist / 400), 2); 
+                        proximityShiftX = -dx * intensity * 0.3; 
+                        proximityShiftY = -dy * intensity * 0.3;
+                    }
+                } else if (!isTouchDevice && appState === 'PANIC') {
+                    const cx = screenRect.left + screenRect.width / 2;
+                    const cy = screenRect.top + screenRect.height / 2;
+                    const dx = mouseX - cx;
+                    const dy = mouseY - cy;
+                    proximityShiftX = -(dx / (screenRect.width / 2)) * 120; 
+                    proximityShiftY = -(dy / (screenRect.height / 2)) * 120;
+                }
+
+                let totalX = gyroShiftX + autoCardX + proximityShiftX;
+                let totalY = gyroShiftY + autoCardY + proximityShiftY;
+
+                // Constraint: Keep out of top 20% and bottom 20% on Y axis
+                const maxVerticalShift = window.innerHeight * 0.25; 
+                totalY = Math.max(-maxVerticalShift, Math.min(maxVerticalShift, totalY));
+
+                const deg = (Math.random() * 1.5) - 0.75;
+                cardsWrapper.style.transform = `translate(${totalX}px, ${totalY}px) rotate(${deg}deg)`;
+            } else {
+                cardsWrapper.style.transform = `translate(0px, 0px) rotate(0deg)`;
+            }
+
+
+            // Goomba Physics Update
+            if (appState === 'PANIC' || appState === 'CHAOS') {
+                const speedMultiplier = appState === 'CHAOS' ? 4 : 0.4;
+                const arenaRect = controlsArena.getBoundingClientRect();
+
+                let minX, maxX, minY, maxY;
+
+                if (appState === 'PANIC') {
+                    minX = 0;
+                    maxX = controlsArena.clientWidth - goombas[0].w;
+                    minY = 0;
+                    maxY = controlsArena.clientHeight - goombas[0].h;
+                } else {
+                    minX = screenRect.left - arenaRect.left;
+                    maxX = screenRect.right - arenaRect.left - goombas[0].w;
+                    minY = screenRect.top - arenaRect.top;
+                    maxY = screenRect.bottom - arenaRect.top - goombas[0].h;
+                }
+
+                goombas.forEach(g => {
+                    if (!g.active) return;
+                    
+                    g.x += g.vx * speedMultiplier;
+                    g.y += g.vy * speedMultiplier;
+
+                    if (g.x <= minX) { g.x = minX; g.vx *= -1; vibrate(5); }
+                    else if (g.x >= maxX) { g.x = maxX; g.vx *= -1; vibrate(5); }
+
+                    if (g.y <= minY) { g.y = minY; g.vy *= -1; vibrate(5); }
+                    else if (g.y >= maxY) { g.y = maxY; g.vy *= -1; vibrate(5); }
+
+                    g.el.style.left = `${g.x}px`;
+                    g.el.style.top = `${g.y}px`;
+
+                    const currentSpeed = Math.hypot(g.vx, g.vy);
+                    const targetSpeed = 2; 
+                    if (currentSpeed > targetSpeed) {
+                        g.vx *= 0.95; 
+                        g.vy *= 0.95;
+                    }
+                });
+            }
+
+            // Dino Physics
+            if (appState === 'CHAOS') {
+                // If preparing fire, dino slows down significantly to look ominous
+                const speedMultiplier = isPreparingFire ? 0.3 : 1;
+
+                if (isTouchDevice) {
+                    // Touch Device Random Roam
+                    dinoObj.x += dinoObj.vx * speedMultiplier;
+                    dinoObj.y += dinoObj.vy * speedMultiplier;
+                    
+                    // Allow ~40% off X edges, 20% off Y edges
+                    const minX = -DINO_W * 0.4;
+                    const maxX = screenRect.width - DINO_W * 0.6;
+                    const minY = -DINO_H * 0.2;
+                    const maxY = screenRect.height - DINO_H * 0.8;
+
+                    if (dinoObj.x <= minX) { dinoObj.x = minX; dinoObj.vx *= -1; }
+                    if (dinoObj.x >= maxX) { dinoObj.x = maxX; dinoObj.vx *= -1; }
+                    if (dinoObj.y <= minY) { dinoObj.y = minY; dinoObj.vy *= -1; }
+                    if (dinoObj.y >= maxY) { dinoObj.y = maxY; dinoObj.vy *= -1; }
+
+                    dino.style.left = `${dinoObj.x}px`;
+                    dino.style.top = `${dinoObj.y}px`;
+                    dino.style.transform = `scaleX(${dinoObj.vx < 0 ? -1 : 1})`;
+
+                    if (!isPreparingFire && !isBreathingFire) {
+                        if (Math.random() < 0.05) {
+                            dinoInner.classList.add('biting');
+                            dinoInner.classList.remove('stomp-anim');
+                            if (Math.random() < 0.2) vibrate(30);
+                        } else {
+                            dinoInner.classList.remove('biting');
+                            dinoInner.classList.add('stomp-anim');
+                        }
+                    }
+
+                } else {
+                    // Desktop Mouse Chasing
+                    const localMouseX = mouseX - screenRect.left;
+                    const localMouseY = mouseY - screenRect.top;
+                    
+                    const dinoCenterX = dinoObj.x + DINO_W / 2;
+                    const dinoCenterY = dinoObj.y + DINO_H / 2;
+
+                    const dx = localMouseX - dinoCenterX;
+                    const dy = localMouseY - dinoCenterY;
+                    const dist = Math.hypot(dx, dy);
+
+                    if (!isPaused) {
+                        if (dist > 10) {
+                            const speed = 4 * speedMultiplier;
+                            dinoObj.x += (dx / dist) * speed;
+                            dinoObj.y += (dy / dist) * speed;
+                        }
+
+                        dino.style.left = `${dinoObj.x}px`;
+                        dino.style.top = `${dinoObj.y}px`;
+                        dino.style.transform = `scaleX(${dx < 0 ? -1 : 1})`;
+
+                        if (!isPreparingFire && !isBreathingFire) {
+                            if (dist < 100) {
+                                dinoInner.classList.add('biting');
+                                dinoInner.classList.remove('stomp-anim'); 
+                            } else {
+                                dinoInner.classList.remove('biting');
+                                dinoInner.classList.add('stomp-anim');
+                            }
+                        }
+                    }
+                }
+            }
+
+            rafId = requestAnimationFrame(engineLoop);
+        }
+
+        function pad(num, size = 2) {
+            let s = Math.floor(Math.abs(num)).toString();
+            while (s.length < size) s = "0" + s;
+            return s;
+        }
+
+        function updateTimerDisplay() {
+            const absTime = Math.abs(timerTime);
+            
+            const h = Math.floor(absTime / 3600000);
+            const m = Math.floor((absTime % 3600000) / 60000);
+            const s = Math.floor((absTime % 60000) / 1000);
+
+            tHh.innerText = (timerTime < 0 && h === 0 && m === 0 && s === 0) ? "-00" : (timerTime < 0 ? "-" + pad(h) : pad(h));
+            tMm.innerText = pad(m);
+            tSs.innerText = pad(s);
+
+            const timerDisplay = document.getElementById('timer-display');
+            if (timerTime < 0) {
+                timerDisplay.classList.add('text-red-600', 'is-negative');
+            } else {
+                timerDisplay.classList.remove('text-red-600', 'is-negative');
+            }
+        }
+
+        // --- State Management & Vibe Switch ---
+        
+        btnVibe.addEventListener('click', () => {
+            vibrate(15);
+            if (appState === 'CHILL') appState = 'PANIC';
+            else if (appState === 'PANIC') appState = 'CHAOS';
+            else appState = 'CHILL';
+            
+            updateUIForState();
+        });
+
+        function triggerFire() {
+            if (appState !== 'CHAOS' || isPaused || !dinoObj.active) return;
+            
+            // Phase 1: Prepare (Red eyes, angry face)
+            isPreparingFire = true;
+            document.getElementById('dino-eye').classList.remove('hidden');
+            document.getElementById('dino-brow').classList.remove('hidden');
+            vibrate([20, 20, 20, 20]); // Low growl
+            
+            setTimeout(() => {
+                if (appState !== 'CHAOS' || isPaused || !dinoObj.active) {
+                    resetFireState();
+                    return;
+                }
+                
+                // Phase 2: Fire Breath
+                isBreathingFire = true;
+                isPreparingFire = false;
+                
+                const fireEl = document.getElementById('dino-fire');
+                fireEl.classList.remove('hidden');
+                
+                // Slightly randomize scale for short chaotic blast
+                const sX = 0.8 + Math.random() * 0.4;
+                const sY = 0.8 + Math.random() * 0.4;
+                const rot = (Math.random() - 0.5) * 15; 
+                
+                fireEl.style.transform = `scale(${sX}, ${sY}) rotate(${rot}deg)`;
+                
+                dinoInner.classList.add('biting');
+                dinoInner.classList.remove('stomp-anim');
+
+                // Ignite Bento Card
+                mainBento.classList.add('card-on-fire');
+                document.getElementById('bento-flames').classList.remove('hidden');
+                
+                vibrate([100, 50, 150, 50, 250]); // Heavy haptic for fire
+                
+                // Phase 3: Cool down
+                firePhaseTimeout = setTimeout(() => {
+                    resetFireState();
+                }, 800 + Math.random() * 400); 
+            }, 1000); // 1s warning
+        }
+
+        function resetFireState() {
+            clearTimeout(firePhaseTimeout);
+            document.getElementById('dino-eye').classList.add('hidden');
+            document.getElementById('dino-brow').classList.add('hidden');
+            document.getElementById('dino-fire').classList.add('hidden');
+            
+            mainBento.classList.remove('card-on-fire');
+            document.getElementById('bento-flames').classList.add('hidden');
+            
+            isBreathingFire = false;
+            isPreparingFire = false;
+            
+            if (dinoObj.active && !isPaused) {
+                dinoInner.classList.remove('biting');
+                dinoInner.classList.add('stomp-anim');
+            }
+        }
+
+        function updateUIForState() {
+            btnVibe.innerHTML = `<span>MODE: ${appState}</span> <i data-lucide="refresh-cw" class="w-4 h-4 md:w-5 md:h-5 ${appState !== 'CHILL' ? 'animate-spin' : ''}"></i>`;
+            
+            if (appState === 'CHILL') {
+                stopBossMusic();
+                resetFireState();
+                clearInterval(fireInterval);
+
+                btnVibe.className = 'neu-btn bg-neocy px-5 py-2 md:px-6 md:py-2 font-bold text-base md:text-lg uppercase rounded-lg flex items-center justify-center space-x-2 whitespace-nowrap transition-all w-auto';
+                cardsWrapper.style.transition = 'transform 0.3s ease-out';
+                
+                gyroShiftX = 0; gyroShiftY = 0;
+                autoCardX = 0; autoCardY = 0;
+
+                bentoInner.classList.remove('panic-shiver');
+                controlsArena.classList.remove('panic-shiver');
+                controlsArena.classList.remove('arena-shattered');
+                controlsArena.classList.add('neu-box', 'bg-gray-100');
+                document.querySelectorAll('.shard').forEach(s => s.remove());
+                
+            } else if (appState === 'PANIC') {
+                playBossMusic('PANIC');
+                resetFireState();
+                clearInterval(fireInterval);
+
+                btnVibe.className = 'neu-btn bg-neopink px-5 py-2 md:px-6 md:py-2 font-bold text-base md:text-lg uppercase rounded-lg flex items-center justify-center space-x-2 whitespace-nowrap text-white transition-all w-auto';
+                cardsWrapper.style.transition = 'none'; 
+                
+                bentoInner.classList.add('panic-shiver'); 
+                controlsArena.classList.add('panic-shiver');
+                controlsArena.classList.remove('arena-shattered');
+                controlsArena.classList.add('neu-box', 'bg-gray-100');
+                document.querySelectorAll('.shard').forEach(s => s.remove());
+
+            } else { // CHAOS
+                playBossMusic('CHAOS');
+                btnVibe.className = 'neu-btn bg-red-600 px-5 py-2 md:px-8 md:py-3 font-bold text-lg md:text-xl uppercase rounded-lg flex items-center justify-center gap-2 whitespace-nowrap text-white animate-pulse transition-all w-max mx-auto';
+                cardsWrapper.style.transition = 'none'; 
+                bentoInner.classList.add('panic-shiver');
+
+                // Kick off autonomous movement
+                autoCardVx = (Math.random() > 0.5 ? 1 : -1) * 0.5;
+                autoCardVy = (Math.random() > 0.5 ? 1 : -1) * 0.5;
+                
+                clearInterval(fireInterval);
+                fireInterval = setInterval(triggerFire, 5000);
+                
+                if (!controlsArena.classList.contains('arena-shattered')) {
+                    controlsArena.classList.remove('neu-box', 'bg-gray-100', 'panic-shiver');
+                    controlsArena.classList.add('arena-shattered');
+                    createShards();
+                }
+            }
+            lucide.createIcons();
+
+            if (appState === 'CHILL') {
+                deactivateGoombas();
+            } else if (appState === 'PANIC' || appState === 'CHAOS') {
+                if (!goombas[0].active) activateGoombas();
+            }
+
+            if (appState === 'CHAOS') {
+                dino.classList.remove('hidden');
+                dinoObj.active = true;
+                
+                const screenRect = screenBounds.getBoundingClientRect();
+                dinoObj.x = screenRect.width + 100;
+                dinoObj.y = screenRect.height / 2;
+
+                if (isTouchDevice) {
+                    dinoObj.vx = (Math.random() > 0.5 ? 1 : -1) * 8;
+                    dinoObj.vy = (Math.random() > 0.5 ? 1 : -1) * 8;
+                }
+            } else {
+                dino.classList.add('hidden');
+                dinoObj.active = false;
+                resetFireState();
+            }
+        }
+
+        function activateGoombas() {
+            const arenaRect = controlsArena.getBoundingClientRect();
+            
+            goombas.forEach((g, index) => {
+                const el = g.el;
+                
+                el.classList.add('walking-btn');
+                
+                el.style.width = `${el.offsetWidth}px`;
+                el.style.height = `${el.offsetHeight}px`;
+                
+                g.w = el.offsetWidth;
+                g.h = el.offsetHeight;
+                
+                g.x = (arenaRect.width / 2) - (g.w / 2) + (index === 0 ? -60 : 60);
+                g.y = (arenaRect.height / 2) - (g.h / 2);
+                
+                g.vx = (Math.random() > 0.5 ? 1 : -1) * (1 + Math.random() * 1.5);
+                g.vy = (Math.random() > 0.5 ? 1 : -1) * (1 + Math.random() * 1.5);
+                
+                el.style.position = 'absolute';
+                el.style.left = `${g.x}px`;
+                el.style.top = `${g.y}px`;
+                
+                g.active = true;
+            });
+            lucide.createIcons();
+        }
+
+        function deactivateGoombas() {
+            goombas.forEach(g => {
+                g.active = false;
+                g.el.classList.remove('walking-btn');
+
+                g.el.style.position = 'static';
+                g.el.style.width = '';
+                g.el.style.height = '';
+                g.el.style.left = '';
+                g.el.style.top = '';
+                g.el.style.transform = '';
+            });
+        }
+
+        btnPause.addEventListener('click', (e) => {
+            vibrate(15);
+            isPaused = !isPaused;
+            const icon = isPaused ? 'play' : 'pause';
+            const text = isPaused ? 'Resume' : 'Pause';
+            
+            btnPause.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5 md:w-6 md:h-6"></i><span class="btn-text">${text}</span>`;
+            lucide.createIcons();
+        });
+
+        btnStop.addEventListener('click', () => {
+            vibrate(30);
+            resetApp();
+        });
+
+    </script>
+</body>
+</html>
